@@ -79,7 +79,6 @@ function sizeWheelCanvas(){ // وضوح العجلة على شاشات HiDPI
   drawWheel();
 }
 window.addEventListener('resize', sizeWheelCanvas);
-// لو الـ devicePixelRatio اتغير بعد التحميل (نقل النافذة لشاشة تانية مثلاً)
 let _dprMql = null;
 function watchDpr(){
   if (_dprMql) _dprMql.removeEventListener('change', _dprChanged);
@@ -88,6 +87,13 @@ function watchDpr(){
 }
 function _dprChanged(){ sizeWheelCanvas(); watchDpr(); }
 watchDpr();
+
+/* عروق خشب إطار العجلة — ثابتة حتى لا تومض أثناء الدوران */
+const WOODGRAIN = (()=>{ let s=7; const rnd=()=>{ s=(s*16807)%2147483647; return s/2147483647; };
+  const g=[]; for(let i=0;i<26;i++){ const a0=rnd()*2*Math.PI;
+    g.push({rr:211+rnd()*10, a0, a1:a0+.3+rnd()*.9, w:.6+rnd()*1.4,
+      c:rnd()<.5?'rgba(20,12,7,.25)':'rgba(120,91,69,.30)'}); } return g; })();
+
 function wheelColors(){
   return S.mode==='study'
     ? ['#2e6b57','#17352b','#7fc8bc','#2e6b57','#17352b','#7fc8bc']
@@ -96,7 +102,7 @@ function wheelColors(){
 function drawWheel(){
   const vals = S.mode==='study'? S.studyVals : S.restVals;
   const cols = wheelColors(), n = vals.length, arc = 2*Math.PI/n;
-  const cx=230, cy=230, r=215;
+  const cx=230, cy=230, r=208;
   ctx2d.clearRect(0,0,460,460);
   ctx2d.save(); ctx2d.translate(cx,cy); ctx2d.rotate(angle);
   for (let i=0;i<n;i++){
@@ -117,52 +123,94 @@ function drawWheel(){
     ctx2d.fillText(String(vals[i]), 0, 0);
     ctx2d.restore();
   }
-  // إطار العجلة
-  ctx2d.beginPath(); ctx2d.arc(0,0,r+7,0,2*Math.PI);
-  ctx2d.strokeStyle='#3d5d4e'; ctx2d.lineWidth=15; ctx2d.stroke();
+  // إطار خشبي للعجلة — نفس خشب البراويز
+  const rimBands = [
+    {rr:r+14, w:6,  c:'#241810'},
+    {rr:r+8,  w:11, c:'#3d2c20'},
+    {rr:r+2,  w:4,  c:'#5d4534'},
+  ];
+  for (const b of rimBands){ ctx2d.beginPath(); ctx2d.arc(0,0,b.rr,0,2*Math.PI);
+    ctx2d.strokeStyle=b.c; ctx2d.lineWidth=b.w; ctx2d.stroke(); }
+  for (const g of WOODGRAIN){ ctx2d.beginPath(); ctx2d.arc(0,0,g.rr,g.a0,g.a1);
+    ctx2d.strokeStyle=g.c; ctx2d.lineWidth=g.w; ctx2d.stroke(); }
+  // مسامير معدنية صغيرة بين الأقسام (تدور مع العجلة والرفسة تعدّي عليها)
+  for (let i=0;i<n;i++){
+    const pa = i*arc - Math.PI/2;
+    const px = Math.cos(pa)*(r+2), py = Math.sin(pa)*(r+2);
+    const pg = ctx2d.createRadialGradient(px-1.5,py-1.5,.5, px,py,5);
+    pg.addColorStop(0,'#ece6d8'); pg.addColorStop(.55,'#9a948a'); pg.addColorStop(1,'#46413a');
+    ctx2d.beginPath(); ctx2d.arc(px,py,4.6,0,2*Math.PI);
+    ctx2d.fillStyle=pg; ctx2d.fill();
+    ctx2d.strokeStyle='rgba(0,0,0,.45)'; ctx2d.lineWidth=1; ctx2d.stroke();
+  }
   ctx2d.beginPath(); ctx2d.arc(0,0,r-1,0,2*Math.PI);
-  ctx2d.strokeStyle='#668477'; ctx2d.lineWidth=3; ctx2d.stroke();
+  ctx2d.strokeStyle='#2a1d14'; ctx2d.lineWidth=3; ctx2d.stroke();
+  ctx2d.restore();
+  // إضاءة ثابتة على الإطار الخشبي (لا تدور مع العجلة)
+  ctx2d.save(); ctx2d.translate(cx,cy);
+  ctx2d.beginPath(); ctx2d.arc(0,0,r+8, Math.PI*0.75, Math.PI*1.45);
+  ctx2d.strokeStyle='rgba(255,235,215,.18)'; ctx2d.lineWidth=5; ctx2d.stroke();
+  ctx2d.beginPath(); ctx2d.arc(0,0,r+8, -Math.PI*0.22, Math.PI*0.42);
+  ctx2d.strokeStyle='rgba(0,0,0,.32)'; ctx2d.lineWidth=6; ctx2d.stroke();
   ctx2d.restore();
 }
+
 function spin(){
   if (spinning) return;
   spinning = true; $('spinBtn').disabled = true;
   $('editPanel').classList.remove('open');
-  // المساعد بيدفع العجلة الحقيقية: مقطع الدفع تحت العجلة والعجلة بتلف لوحدها وتقف على النتيجة
+
+  // المساعد يدفع العجلة بشكل طبيعي
   const mobileSpin = (window.innerWidth < 760 || window.innerHeight > window.innerWidth * 1.15);
   if (mobileSpin) charPlace(72, 2, 15, 'push');
-  else charPlace(32, 19, 41, 'push');
+  else charPlace(32, 18, 41, 'push');
   charPlay('push', false);
+
   const vals = S.mode==='study'? S.studyVals : S.restVals;
   const n = vals.length, arc = 2*Math.PI/n;
   const targetIdx = Math.floor(Math.random()*n);
-  // العايز المؤشر (فوق، -90deg) يقف في نص القطاع targetIdx
   const TAU = 2*Math.PI;
   const start = ((angle % TAU)+TAU)%TAU;
   const finalA = (TAU - (targetIdx*arc + arc/2)) % TAU;
   const delta = ((finalA - start) % TAU + TAU) % TAU;
   const target = 5*TAU + delta;
-  const dur = 4300, t0 = performance.now();
-  function ease(p){ // خروج ناعم مع ارتداد صغير في الآخر
-    const c=.55;
-    return 1 + (c+1)*Math.pow(p-1,3) + c*Math.pow(p-1,2);
+  const dur = 4000, t0 = performance.now();
+
+  // منحنى فيزيائي انسيابي لتسارع وتباطؤ العجلة بسلاسة دون ارتداد حاد
+  function ease(p){
+    return 1 - Math.pow(1 - p, 3.2);
   }
+
+  // بعد انتهاء دفعة اليد، يعود المساعد فوراً لوضع الترقب بدلاً من التجمد
+  setTimeout(()=>{
+    if (spinning) {
+      const mob = (window.innerWidth < 760 || window.innerHeight > window.innerWidth * 1.15);
+      charPlace(mob ? 72 : 33, mob ? 6 : 10, mob ? 15 : 39, 'wave');
+      charPlay('wave', true);
+    }
+  }, 1400);
+
   function frame(t){
     const p = Math.min(1,(t-t0)/dur);
     angle = start + target*ease(p);
     drawWheel();
-    if (p<1) requestAnimationFrame(frame);
-    else {
-      angle = (start+target)%(2*Math.PI); drawWheel();
-      spinning=false; $('spinBtn').disabled=false;
+    if (p<1) {
+      requestAnimationFrame(frame);
+    } else {
+      angle = (start+target)%(2*Math.PI);
+      drawWheel();
+      spinning = false;
+      $('spinBtn').disabled = false;
       setChars();
       S.picked = vals[targetIdx];
       toast(S.mode==='study' ? `مذاكرة ${S.picked} ${arMin(S.picked)}` : `راحة ${S.picked} ${arMin(S.picked)}`);
       if (S.mode==='study') setTodo(1, true); // حدد الوقت
-      transitionTimer = setTimeout(()=>{ transitionTimer=null; gotoTimer(); }, 1100);
+      transitionTimer = setTimeout(()=>{ transitionTimer=null; gotoTimer(); }, 1200);
     }
   }
-  setTimeout(()=>requestAnimationFrame(frame), 800); // العجلة تبدأ مع وصول إيد المساعد ليها
+
+  // تبدأ العجلة بالدوران سريعاً بمجرد تلامس يد المساعد (220ms)
+  setTimeout(()=>requestAnimationFrame(frame), 450);
 }
 $('spinBtn').addEventListener('click', spin);
 cv.addEventListener('click', spin);
@@ -172,7 +220,6 @@ $('editToggle').addEventListener('click', ()=>{
   const p = $('editPanel'); p.classList.toggle('open');
   const vals = S.mode==='study'? S.studyVals : S.restVals;
   $('editInputs').innerHTML = vals.map((v,i)=>`<input type="number" min="1" max="180" value="${v}" data-i="${i}">`).join('');
-  // لو اللوحة هتتقصّ من تحت، افتحها لفوق
   p.classList.remove('up');
   if (p.classList.contains('open') && p.getBoundingClientRect().bottom > window.innerHeight - 8)
     p.classList.add('up');
@@ -195,7 +242,7 @@ $('editApply').addEventListener('click', ()=>{
 function charEl(){ return $('charOr'); }
 function charPlay(name, loop){
   const C = charEl(), v = C.querySelector('video'), c = CLIPS[name];
-  if (!v){ // متصفح مش بيدعم الفيديو الشفاف: صورة ثابتة لكل حالة
+  if (!v){
     const img = C.querySelector('img');
     if (img) img.src = c.poster;
     return;
@@ -269,11 +316,11 @@ function show(p, noPush){
   fadeChars(); setFrames();
   if (!noPush){ const h='#'+p+'-'+S.mode+(p==='timer' ? '-'+S.picked : ''); if (location.hash!==h) history.pushState(null,'',h); }
 }
-function fadeChars(){ // انتقال ناعم بين أوضاع المساعد
+function fadeChars(){
   const cs = document.querySelectorAll('.char');
   cs.forEach(c=>c.style.opacity=0);
   clearTimeout(fadeT);
-  fadeT = setTimeout(()=>{ setChars(); cs.forEach(c=>c.style.opacity=1); }, 300);
+  fadeT = setTimeout(()=>{ setChars(); cs.forEach(c=>c.style.opacity=1); }, 250);
 }
 function gotoTimer(noPush){
   S.total = S.picked*60; S.left = S.total; S.running=false;
@@ -284,7 +331,7 @@ function gotoTimer(noPush){
   show('timer', noPush);
 }
 $('backBtn').addEventListener('click', ()=>{
-  if (spinning) return; // متتراجعش في نص اللفة عشان الحالة متتلخبطش
+  if (spinning) return;
   clearTransition();
   stopTick();
   if (S.page==='timer') { show('wheel'); }
@@ -304,10 +351,10 @@ $('startBtn').addEventListener('click', ()=>{
   if (S.running) return;
   clearTransition();
   if (S.left<=0){ S.left=S.total; updateTimerUI(); }
-  S.running=true; S.endAt = Date.now()+S.left*1000; lockScreen(); // الشاشة تفضل صاحية وقت الجلسة
+  S.running=true; S.endAt = Date.now()+S.left*1000; lockScreen();
   $('startBtn').textContent='شغال...';
   freezeChar(false);
-  if (S.mode==='study') setTodo(2, true); // بدء المذاكرة
+  if (S.mode==='study') setTodo(2, true);
   S.tick = setInterval(()=>{
     S.left = (S.endAt-Date.now())/1000;
     if (S.left<=0){ S.left=0; updateTimerUI(); finishTimer(); }
@@ -328,7 +375,7 @@ $('resetBtn').addEventListener('click', ()=>{
   stopTick(); S.left=S.total; updateTimerUI(); $('startBtn').textContent='ابدأ ▶';
   freezeChar(false);
 });
-$('skipBtn').addEventListener('click', ()=>{ // تخطي المرحلة الحالية
+$('skipBtn').addEventListener('click', ()=>{
   clearTransition();
   stopTick(); S.left=0; updateTimerUI();
   $('startBtn').textContent='ابدأ ▶';
@@ -337,29 +384,42 @@ $('skipBtn').addEventListener('click', ()=>{ // تخطي المرحلة الحا
   if (wasRest) newRound();
   angle=0; drawWheel(); show('wheel');
 });
+
 function finishTimer(){
   clearTransition();
   stopTick(); chime(); $('startBtn').textContent='ابدأ ▶';
   if (S.mode==='study'){
-    toast('خلص وقت المذاكرة! وقت الراحة');
-    // المساعد بيحتفل بقفزة أول ما المذاكرة تخلص
+    toast('خلص وقت المذاكرة! وقت الراحة 🎉');
     const mobileEnd = (window.innerWidth < 760 || window.innerHeight > window.innerWidth * 1.15);
     if (mobileEnd) charPlace(66, 6, 18, 'cheer');
     else charPlace(34, 8, 36, 'cheer');
     charEl().classList.remove('frozen');
     charPlay('cheer', false);
-    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='rest'; angle=0; drawWheel(); show('wheel'); }, 6600);
+    transitionTimer = setTimeout(()=>{
+      transitionTimer=null;
+      S.mode='rest';
+      angle=0;
+      drawWheel();
+      show('wheel');
+    }, 2800);
   } else {
-    freezeChar(true);
-    toast('خلصت الراحة، نرجع نذاكر؟');
-    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='study'; newRound(); angle=0; drawWheel(); show('wheel'); }, 2600);
+    toast('خلصت الراحة، نرجع نذاكر؟ ✨');
+    charPlay('wave', true);
+    transitionTimer = setTimeout(()=>{
+      transitionTimer=null;
+      S.mode='study';
+      newRound();
+      angle=0;
+      drawWheel();
+      show('wheel');
+    }, 2400);
   }
 }
 let toastTimer = null;
 function toast(msg){
   $('toast').textContent = msg; $('toast').classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>$('toast').classList.remove('show'), 2200);
+  toastTimer = setTimeout(()=>$('toast').classList.remove('show'), 2400);
 }
 
 /* ---------- البراويز ---------- */
@@ -382,7 +442,7 @@ function setTodo(i, done){
   t.querySelector('.box').textContent = done ? '✓' : '';
   savePrefs();
 }
-function newRound(){ setTodo(1, false); setTodo(2, false); } // جولة مذاكرة جديدة
+function newRound(){ setTodo(1, false); setTodo(2, false); }
 document.querySelectorAll('.todo').forEach(t=>{
   t.addEventListener('click', ()=>{
     t.classList.toggle('done');
@@ -416,13 +476,12 @@ function loadPrefs(){
 
 /* ---------- بداية ---------- */
 loadPrefs();
-// تحميل مسبق لصور الحالات والبراويز عشان أول تحويلة تكون سلسة
 Object.values(CLIPS).map(c=>c.poster)
   .concat(Object.values(FRAMES.study), Object.values(FRAMES.rest))
   .forEach(u=>{ const im=new Image(); im.src=u; });
 sizeWheelCanvas(); setChars(); setFrames();
 window.addEventListener('resize', ()=>{ clearTimeout(rz); rz=setTimeout(setChars, 150); });
-// الروابط: #wheel-study  #timer-study-45  #wheel-rest  #timer-rest-10
+
 function route(h, instant){
   const parts = h.split('-');
   S.mode = parts[1]==='rest' ? 'rest' : 'study';
@@ -453,7 +512,7 @@ window.addEventListener('popstate', ()=>route(location.hash.replace('#','') || '
     if (done) return; done = true;
     try { vid.pause(); } catch(e) {}
     intro.classList.add('leave');
-    setTimeout(() => { intro.remove(); audioInit(); }, 900);
+    setTimeout(() => { intro.remove(); audioInit(); }, 800);
   }
   tap.addEventListener('click', (e) => {
     e.stopPropagation();

@@ -22,6 +22,7 @@
 </head>
 <body>
 
+  <!-- شاشة البداية -->
   <div id="intro">
     <div id="introScene">
       <video id="introVideo" playsinline muted preload="auto" src="assets/or-wave.webm"></video>
@@ -32,92 +33,164 @@
     </div>
     <button id="introTap">&#9654; اضغط للبدء</button>
   </div>
-<div id="stage">
-  <div id="wall">
-    <div class="panel-line" style="right:2%"></div>
-    <div class="panel-line" style="right:38%"></div>
-    <div class="panel-line" style="right:74%"></div>
-  </div>
-  <div id="baseboard"></div>
-  <div id="desk"></div>
-  <div id="restTint"></div>
 
-  <div class="prop" style="left:79.3%; top:2.5%; width:20.7%; height:60.5%"><img src="assets/prop-window.webp" alt=""></div>
-
-  <div id="ropes">
-    <div class="rope" style="right:38%"></div>
-    <div class="rope" style="right:61%"></div>
-  </div>
-  <div id="sign">Study with OR</div>
-  <nav id="journey" aria-label="مراحل جلسة المذاكرة">
-    <span data-step="1" class="active">١. عجلة المذاكرة</span>
-    <i></i><span data-step="2">٢. وقت المذاكرة</span>
-    <i></i><span data-step="3">٣. عجلة الراحة</span>
-    <i></i><span data-step="4">٤. وقت الراحة</span>
-  </nav>
-  <img id="logo" src="assets/logo.png" alt="MF">
-
-  <div class="frame" data-slot="a" tabindex="0" role="button" aria-label="عرض الصورة" style="left:2.5%; top:9.5%; width:21vh; height:21vh"><img alt=""></div>
-  <div class="frame" data-slot="b" tabindex="0" role="button" aria-label="عرض الصورة" style="left:18%; top:10%; width:17vh; height:17vh"><img alt=""></div>
-  <div class="frame" data-slot="c" tabindex="0" role="button" aria-label="عرض الصورة" style="left:2.5%; top:31%; width:17vh; height:17vh"><img alt=""></div>
-  <div class="frame" data-slot="d" tabindex="0" role="button" aria-label="عرض الصورة" style="left:66.5%; top:9%; width:26vh; height:26vh"><img alt=""></div>
-  <div class="frame" data-slot="e" tabindex="0" role="button" aria-label="عرض الصورة" style="left:18%; top:32.5%; width:15vh; height:15vh"><img alt=""></div>
-
-  <div id="board">
-    <h3>قائمة مهامي</h3>
-    <div class="todo done"><span class="box">✓</span><span class="txt">تجهيز الكتب</span></div>
-    <div class="todo"><span class="box"></span><span class="txt">تحديد الوقت</span></div>
-    <div class="todo"><span class="box"></span><span class="txt">بدء المذاكرة</span></div>
-  </div>
-
-  <div class="char" id="charOr"><video muted playsinline loop preload="auto"></video></div>
-
-
-
-  <!-- المرحلة 1: عجلة المذاكرة / المرحلة 3: عجلة الراحة -->
-  <div class="page on" id="pageWheel">
-    <div id="wheelWrap">
-      <canvas id="wheel" width="460" height="460"></canvas>
-      <div id="pointer"></div>
-      <button id="spinBtn">لفّ</button>
+  <!-- مسرح الغرفة الرئيسي -->
+  <div id="stage">
+    <div id="wall">
+      <div class="panel-line" style="right:2%"></div>
+      <div class="panel-line" style="right:38%"></div>
+      <div class="panel-line" style="right:74%"></div>
     </div>
-    <div id="editWrap">
-      <button id="editToggle">عدّل الأوقات</button>
-      <div id="editPanel">
-        <div id="editInputs"></div>
-        <button id="editApply">تمام</button>
+    <div id="baseboard"></div>
+    <div id="desk"></div>
+    <div id="restTint"></div>
+
+    <!-- الشباك الديكوري -->
+    <div class="prop" style="left:79.3%; top:2.5%; width:20.7%; height:60.5%"><img src="assets/prop-window.webp" alt=""></div>
+
+    <!-- لافتة العنوان وشريط المراحل -->
+    <div id="sign">Study with OR</div>
+    <nav id="journey" aria-label="مراحل جلسة المذاكرة">
+      <span data-step="1" class="active">١. عجلة المذاكرة</span>
+      <i></i><span data-step="2">٢. وقت المذاكرة</span>
+      <i></i><span data-step="3">٣. عجلة الراحة</span>
+      <i></i><span data-step="4">٤. وقت الراحة</span>
+    </nav>
+    <img id="logo" src="assets/logo.png" alt="MF">
+
+    <!-- البراويز الجدارية -->
+    <div class="frame" data-slot="a" tabindex="0" role="button" aria-label="عرض الصورة" style="left:2.5%; top:9.5%; width:18vh; height:18vh"><img alt=""></div>
+    <div class="frame" data-slot="b" tabindex="0" role="button" aria-label="عرض الصورة" style="left:15%; top:10%; width:15vh; height:15vh"><img alt=""></div>
+    <div class="frame" data-slot="c" tabindex="0" role="button" aria-label="عرض الصورة" style="left:2.5%; top:29.5%; width:15vh; height:15vh"><img alt=""></div>
+    <div class="frame" data-slot="d" tabindex="0" role="button" aria-label="عرض الصورة" style="left:64%; top:9%; width:20vh; height:20vh"><img alt=""></div>
+    <div class="frame" data-slot="e" tabindex="0" role="button" aria-label="عرض الصورة" style="left:15%; top:31%; width:14vh; height:14vh"><img alt=""></div>
+
+    <!-- سبورة قائمة المهام -->
+    <div id="board">
+      <h3>قائمة مهامي</h3>
+      <div class="todo done"><span class="box">✓</span><span class="txt">تجهيز الكتب</span></div>
+      <div class="todo"><span class="box"></span><span class="txt">تحديد الوقت</span></div>
+      <div class="todo"><span class="box"></span><span class="txt">بدء المذاكرة</span></div>
+    </div>
+
+    <!-- مصباح المكتب والنبتة — مصدر الإضاءة الدافئة -->
+    <div id="deskProps" aria-hidden="true">
+      <svg viewBox="0 0 210 150" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="52" cy="142" rx="34" ry="7" fill="rgba(255,206,148,.16)"/>
+        <ellipse cx="42" cy="140" rx="20" ry="5" fill="#1c130c"/>
+        <ellipse cx="42" cy="138" rx="20" ry="5" fill="#4a3527"/>
+        <ellipse cx="42" cy="137" rx="14" ry="3" fill="#6a4f3a"/>
+        <rect x="38" y="52" width="8" height="86" rx="4" fill="#3a2a1c"/>
+        <rect x="39.5" y="52" width="2.5" height="86" rx="1.2" fill="#5d4534"/>
+        <path d="M14,52 Q42,26 70,52 L76,66 L8,66 Z" fill="#2f5d4a"/>
+        <path d="M14,52 Q42,26 70,52 L76,66 L8,66 Z" fill="none" stroke="#1d3d30" stroke-width="2.5"/>
+        <path d="M20,52 Q42,32 64,52" fill="none" stroke="#487a63" stroke-width="2"/>
+        <ellipse cx="42" cy="70" rx="13" ry="5" fill="#ffe3b0" opacity=".92"/>
+        <ellipse cx="42" cy="74" rx="26" ry="9" fill="rgba(255,214,160,.28)"/>
+        <path d="M140,142 L148,108 L172,108 L180,142 Z" fill="#c9b892"/>
+        <path d="M140,142 L148,108 L172,108 L180,142 Z" fill="none" stroke="#8f7c58" stroke-width="2"/>
+        <rect x="145" y="103" width="30" height="8" rx="3" fill="#d9cdab" stroke="#8f7c58" stroke-width="1.5"/>
+        <path d="M160,104 C160,88 152,80 142,76" fill="none" stroke="#2f5d3f" stroke-width="4" stroke-linecap="round"/>
+        <path d="M160,104 C162,86 170,78 178,72" fill="none" stroke="#2f5d3f" stroke-width="4" stroke-linecap="round"/>
+        <path d="M160,104 C159,90 160,82 160,74" fill="none" stroke="#3f7d5a" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="140" cy="72" rx="7" ry="10" fill="#3f7d5a" transform="rotate(-32 140 72)"/>
+        <ellipse cx="180" cy="68" rx="7" ry="10" fill="#3f7d5a" transform="rotate(28 180 68)"/>
+        <ellipse cx="160" cy="68" rx="7" ry="11" fill="#4c8a66"/>
+        <ellipse cx="148" cy="84" rx="5" ry="8" fill="#356b4c" transform="rotate(-24 148 84)"/>
+        <ellipse cx="172" cy="86" rx="5" ry="8" fill="#356b4c" transform="rotate(22 172 86)"/>
+      </svg>
+    </div>
+    <!-- رف عائم بكتب ونبتة صغيرة -->
+    <div id="shelf" aria-hidden="true">
+      <svg viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="78" width="5" height="10" rx="1.5" fill="#241810"/>
+        <rect x="165" y="78" width="5" height="10" rx="1.5" fill="#241810"/>
+        <rect x="4" y="66" width="192" height="12" rx="2.5" fill="#4a3626"/>
+        <rect x="4" y="66" width="192" height="4" rx="2" fill="#785b45"/>
+        <rect x="4" y="74" width="192" height="4" rx="1.5" fill="#2a1d14"/>
+        <rect x="18" y="26" width="13" height="40" rx="1.5" fill="#4a7a6a"/>
+        <rect x="18" y="26" width="3.5" height="40" fill="#35584c"/>
+        <rect x="33" y="31" width="11" height="35" rx="1.5" fill="#d9cdab"/>
+        <rect x="33" y="31" width="3" height="35" fill="#b3a684"/>
+        <g transform="rotate(11 55 66)"><rect x="46" y="33" width="11" height="33" rx="1.5" fill="#9a86c8"/><rect x="46" y="33" width="3" height="33" fill="#7a66a8"/></g>
+        <rect x="62" y="52" width="26" height="7" rx="1.5" fill="#7a5a80"/>
+        <rect x="65" y="58" width="22" height="7" rx="1.5" fill="#d9cdab"/>
+        <path d="M150,66 L156,44 L176,44 L182,66 Z" fill="#c9b892"/>
+        <path d="M150,66 L156,44 L176,44 L182,66 Z" fill="none" stroke="#8f7c58" stroke-width="1.5"/>
+        <path d="M166,45 C166,34 161,28 154,24" fill="none" stroke="#2f5d3f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M166,45 C168,33 174,27 180,22" fill="none" stroke="#2f5d3f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M166,45 C165,35 166,28 166,20" fill="none" stroke="#3f7d5a" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="152" cy="21" rx="5" ry="7.5" fill="#3f7d5a" transform="rotate(-30 152 21)"/>
+        <ellipse cx="182" cy="19" rx="5" ry="7.5" fill="#3f7d5a" transform="rotate(26 182 19)"/>
+        <ellipse cx="166" cy="16" rx="5" ry="8" fill="#4c8a66"/>
+        <path d="M186,66 C190,74 188,80 186,86" fill="none" stroke="#3f7d5a" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse cx="188" cy="76" rx="3" ry="4.5" fill="#4c8a66" transform="rotate(20 188 76)"/>
+        <ellipse cx="185" cy="84" rx="2.5" ry="4" fill="#3f7d5a" transform="rotate(-14 185 84)"/>
+      </svg>
+    </div>
+    <!-- سلسلة أضواء دافئة -->
+    <div id="stringLights" aria-hidden="true">
+      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-10,10 Q100,74 200,12 Q300,76 400,10 Q500,76 600,12 Q700,74 800,10 Q900,76 1000,12 Q1100,74 1210,10" fill="none" stroke="#241a12" stroke-width="2.5"/>
+        <g fill="#ffe3b0">
+          <circle cx="100" cy="48" r="13" fill="rgba(255,214,160,.16)"/><circle cx="100" cy="48" r="5.5"/>
+          <circle cx="300" cy="50" r="13" fill="rgba(255,214,160,.16)"/><circle cx="300" cy="50" r="5.5"/>
+          <circle cx="500" cy="50" r="13" fill="rgba(255,214,160,.16)"/><circle cx="500" cy="50" r="5.5"/>
+          <circle cx="700" cy="48" r="13" fill="rgba(255,214,160,.16)"/><circle cx="700" cy="48" r="5.5"/>
+          <circle cx="900" cy="50" r="13" fill="rgba(255,214,160,.16)"/><circle cx="900" cy="50" r="5.5"/>
+          <circle cx="1100" cy="48" r="13" fill="rgba(255,214,160,.16)"/><circle cx="1100" cy="48" r="5.5"/>
+        </g>
+      </svg>
+    </div>
+    <!-- شخصية المساعد التفاعلية -->
+    <div class="char" id="charOr"><video muted playsinline loop preload="auto"></video></div>
+
+    <!-- المرحلة 1 و 3: العجلة التفاعلية -->
+    <div class="page on" id="pageWheel">
+      <div id="wheelWrap">
+        <canvas id="wheel" width="460" height="460"></canvas>
+        <div id="pointer"></div>
+        <button id="spinBtn">لفّ</button>
+      </div>
+      <div id="editWrap">
+        <button id="editToggle">عدّل الأوقات</button>
+        <div id="editPanel">
+          <div id="editInputs"></div>
+          <button id="editApply">تمام</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- المرحلة 2: مؤقت المذاكرة / المرحلة 4: مؤقت الراحة -->
-  <div class="page" id="pageTimer">
-    <div id="timerPanel">
-      <div id="timerLabel">وقت المذاكرة</div>
-      <div id="timerDigits">45:00</div>
-      <div id="progressTrack"><div id="progressBar"></div></div>
-      <div id="timerBtns">
-        <button class="tbtn" id="startBtn">ابدأ ▶</button>
-        <button class="tbtn" id="pauseBtn">إيقاف مؤقت ⏸</button>
-        <button class="tbtn" id="resetBtn">إعادة ↺</button>
-        <button class="tbtn" id="skipBtn">تخطي ⏭</button>
+    <!-- المرحلة 2 و 4: مؤقت الجلسة -->
+    <div class="page" id="pageTimer">
+      <div id="timerPanel">
+        <div id="timerLabel">وقت المذاكرة</div>
+        <div id="timerDigits">45:00</div>
+        <div id="progressTrack"><div id="progressBar"></div></div>
+        <div id="timerBtns">
+          <button class="tbtn" id="startBtn">ابدأ ▶</button>
+          <button class="tbtn" id="pauseBtn">إيقاف مؤقت ⏸</button>
+          <button class="tbtn" id="resetBtn">إعادة ↺</button>
+          <button class="tbtn" id="skipBtn">تخطي ⏭</button>
+        </div>
       </div>
     </div>
+
+    <!-- أزرار ورسائل التحكم -->
+    <button id="backBtn" style="display:none">↩ رجوع</button>
+    <div id="toast"></div>
+
+    <!-- التحكم في الصوت والبيئة المحيطة -->
+    <div id="soundCtl">
+      <span class="sld"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 15a4.5 4.5 0 1 1 .8-8.9A5.5 5.5 0 0 1 18.5 8 3.5 3.5 0 0 1 18 15H7z"/><path d="M8 18l-1 2.5M13 18l-1 2.5M18 18l-1 2.5"/></svg><input type="range" id="rainVol" min="0" max="100" value="30"></span>
+      <span class="sld"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg><input type="range" id="chimeVol" min="0" max="100" value="70"></span>
+    </div>
+
+    <div id="vignette"></div>
   </div>
 
-  <button id="backBtn" style="display:none">↩ رجوع</button>
-  <div id="toast"></div>
-
-  <div id="soundCtl">
-    <span class="sld"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 15a4.5 4.5 0 1 1 .8-8.9A5.5 5.5 0 0 1 18.5 8 3.5 3.5 0 0 1 18 15H7z"/><path d="M8 18l-1 2.5M13 18l-1 2.5M18 18l-1 2.5"/></svg><input type="range" id="rainVol" min="0" max="100" value="30"></span>
-    <span class="sld"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg><input type="range" id="chimeVol" min="0" max="100" value="70"></span>
-  </div>
-
-  <div id="vignette"></div>
-</div>
-
-<div id="lightbox"><img alt=""></div>
-
+  <!-- عارض الصور المكبرة -->
+  <div id="lightbox"><img alt=""></div>
 
 </body>
 </html>
