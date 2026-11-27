@@ -6,7 +6,7 @@
 <title>Study with OR</title>
 <meta name="description" content="Study with OR — مساحة هادئة للمذاكرة الجماعية: اختار وقت تركيزك وراحتك بعجلة تفاعلية ومؤقت بسيط.">
 <meta property="og:title" content="Study with OR">
-<meta property="og:description" content="رفيق مذاكرة بشخصيات توم وجيري: لفّ العجلة لاختيار وقت المذاكرة أو الراحة، وركّز مع المؤقّت، وتابع قائمة مهامك.">
+<meta property="og:description" content="رفيق مذاكرة بمساعد أزرق ودود: لفّ العجلة لاختيار وقت المذاكرة أو الراحة، وركّز مع المؤقّت، وتابع قائمة مهامك.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mahmoudfouad10.github.io/study-with-or/">
 <meta property="og:image" content="https://mahmoudfouad10.github.io/study-with-or/assets/og.jpg">
@@ -23,7 +23,13 @@
 <body>
 
   <div id="intro">
-    <video id="introVideo" playsinline preload="auto" src="assets/intro.mp4"></video>
+    <div id="introScene">
+      <video id="introVideo" playsinline muted preload="auto" src="assets/or-wave.webm"></video>
+      <div id="introBrand">
+        <img id="introLogo" src="assets/logo.png" alt="Study with OR">
+        <div id="introTitle">Study with OR</div>
+      </div>
+    </div>
     <button id="introTap">&#9654; اضغط للبدء</button>
   </div>
 <div id="stage">
@@ -51,11 +57,11 @@
   </nav>
   <img id="logo" src="assets/logo.png" alt="MF">
 
-  <div class="frame" data-slot="a" style="left:2.5%; top:9.5%; width:14%; height:20%"><img alt=""></div>
-  <div class="frame" data-slot="b" style="left:18%; top:10%; width:11%; height:21%"><img alt=""></div>
-  <div class="frame" data-slot="c" style="left:2.5%; top:31%; width:14%; height:16.5%"><img alt=""></div>
-  <div class="frame" data-slot="d" style="left:66.5%; top:9%; width:19%; height:24%"><img alt=""></div>
-  <div class="frame" data-slot="e" style="left:18%; top:32.5%; width:11%; height:15.5%"><img alt=""></div>
+  <div class="frame" data-slot="a" tabindex="0" role="button" aria-label="عرض الصورة" style="left:2.5%; top:9.5%; width:21vh; height:21vh"><img alt=""></div>
+  <div class="frame" data-slot="b" tabindex="0" role="button" aria-label="عرض الصورة" style="left:18%; top:10%; width:17vh; height:17vh"><img alt=""></div>
+  <div class="frame" data-slot="c" tabindex="0" role="button" aria-label="عرض الصورة" style="left:2.5%; top:31%; width:17vh; height:17vh"><img alt=""></div>
+  <div class="frame" data-slot="d" tabindex="0" role="button" aria-label="عرض الصورة" style="left:66.5%; top:9%; width:26vh; height:26vh"><img alt=""></div>
+  <div class="frame" data-slot="e" tabindex="0" role="button" aria-label="عرض الصورة" style="left:18%; top:32.5%; width:15vh; height:15vh"><img alt=""></div>
 
   <div id="board">
     <h3>قائمة مهامي</h3>
@@ -64,8 +70,7 @@
     <div class="todo"><span class="box"></span><span class="txt">بدء المذاكرة</span></div>
   </div>
 
-  <div class="char" id="charTom"><div class="inner"><img alt=""></div></div>
-  <div class="char" id="charJerry"><div class="inner"><img alt=""></div></div>
+  <div class="char" id="charOr"><video muted playsinline loop preload="auto"></video></div>
 
 
 

@@ -1,9 +1,9 @@
-const ASSETS = {
-  tom1:'assets/tom1.webp', tom2:'assets/tom2.webp', tom3:'assets/tom3.webp',
-  jerry1:'assets/jerry1.webp', jerry2:'assets/jerry2.webp', jerry3:'assets/jerry3.webp',
-  tomspin1:'assets/tom-spin1.webp', tomspin2:'assets/tom-spin2.webp', tomspin3:'assets/tom-spin3.webp',
-  jerryspin1:'assets/jerry-spin1.webp', jerryspin2:'assets/jerry-spin2.webp', jerryspin3:'assets/jerry-spin3.webp', jerryspin4:'assets/jerry-spin4.webp',
-  jerryspin5:'assets/jerry-spin5.webp', jerryspin6:'assets/jerry-spin6.webp', jerryspin7:'assets/jerry-spin7.webp'
+const CLIPS = {
+  wave:  {src:'assets/or-wave.webm',  poster:'assets/or-wave.png',  ar:520/616},
+  read:  {src:'assets/or-read.webm',  poster:'assets/or-read.png',  ar:400/709},
+  tea:   {src:'assets/or-tea.webm',   poster:'assets/or-tea.png',   ar:377/668},
+  cheer: {src:'assets/or-cheer.webm', poster:'assets/or-cheer.png', ar:490/696},
+  push:  {src:'assets/or-push.webm',  poster:'assets/or-push.png',  ar:738/686}
 };
 const FRAMES = {
   study: {a:'assets/frame-study-a.webp', b:'assets/frame-study-b.webp', c:'assets/frame-study-c.webp', d:'assets/frame-study-d.webp', e:'assets/frame-study-e.webp'},
@@ -20,13 +20,15 @@ const S = {
   total:45*60, left:45*60, running:false, tick:null, endAt:0
 };
 const $ = id => document.getElementById(id);
-let transitionTimer = null;
+let transitionTimer = null, fadeT = null, rz = null, wl = null;
 function clearTransition(){ if(transitionTimer){ clearTimeout(transitionTimer); transitionTimer=null; } }
+async function lockScreen(){ try{ if (navigator.wakeLock) wl = await navigator.wakeLock.request('screen'); }catch(e){} }
+function unlockScreen(){ if (wl){ wl.release().catch(()=>{}); wl=null; } }
 
 /* ---------- الصوت ---------- */
 let AC=null, rainGain=null, chimeVol=.7, rainVol=.3;
 function audioInit(){
-  if (AC) return;
+  if (AC) { if (AC.state==='suspended') AC.resume().catch(()=>{}); return; }
   if (document.getElementById('intro')) return; // المطر يبدأ بعد انتهاء المقدمة فقط
   AC = new (window.AudioContext||window.webkitAudioContext)();
   // مطر: ضوضاء بنية + فلتر
@@ -58,7 +60,13 @@ function chime(){
 }
 $('rainVol').addEventListener('input', e=>{ rainVol=e.target.value/100; if(rainGain) rainGain.gain.value=rainVol*.9; savePrefs(); });
 $('chimeVol').addEventListener('input', e=>{ chimeVol=e.target.value/100; savePrefs(); });
-function armAudio(){ audioInit(); if (AC) document.removeEventListener('pointerdown', armAudio); }
+function armAudio(){
+  audioInit();
+  if (!AC) return;
+  AC.resume().then(()=>{
+    if (AC.state==='running') document.removeEventListener('pointerdown', armAudio);
+  }).catch(()=>{});
+}
 document.addEventListener('pointerdown', armAudio);
 
 /* ---------- العجلة ---------- */
@@ -120,14 +128,12 @@ function spin(){
   if (spinning) return;
   spinning = true; $('spinBtn').disabled = true;
   $('editPanel').classList.remove('open');
+  // المساعد بيدفع العجلة الحقيقية: مقطع الدفع تحت العجلة والعجلة بتلف لوحدها وتقف على النتيجة
+  const mobileSpin = (window.innerWidth < 760 || window.innerHeight > window.innerWidth * 1.15);
+  if (mobileSpin) charPlace(72, 2, 15, 'push');
+  else charPlace(32, 19, 41, 'push');
+  charPlay('push', false);
   const vals = S.mode==='study'? S.studyVals : S.restVals;
-  const _poses = S.mode==='study' ? ['tomspin1','tomspin2','tomspin3','tomspin2'] : ['jerryspin1','jerryspin2','jerryspin3','jerryspin4','jerryspin5','jerryspin6','jerryspin7'];
-  const _chImg = (S.mode==='study' ? $('charTom') : $('charJerry')).querySelector('img');
-  let _pi=-1;
-  const _poseSync = p => { // حركة الشخصية متزامنة مع تباطؤ العجلة
-    const i = Math.min(_poses.length-1, Math.floor(p*_poses.length));
-    if (i!==_pi){ _pi=i; _chImg.src = ASSETS[_poses[i]]; }
-  };
   const n = vals.length, arc = 2*Math.PI/n;
   const targetIdx = Math.floor(Math.random()*n);
   // العايز المؤشر (فوق، -90deg) يقف في نص القطاع targetIdx
@@ -145,18 +151,18 @@ function spin(){
     const p = Math.min(1,(t-t0)/dur);
     angle = start + target*ease(p);
     drawWheel();
-    _poseSync(p);
     if (p<1) requestAnimationFrame(frame);
     else {
       angle = (start+target)%(2*Math.PI); drawWheel();
       spinning=false; $('spinBtn').disabled=false;
       setChars();
       S.picked = vals[targetIdx];
-      toast(S.mode==='study' ? `مذاكرة ${S.picked} دقيقة` : `راحة ${S.picked} دقائق`);
-      setTimeout(()=>gotoTimer(), 1100);
+      toast(S.mode==='study' ? `مذاكرة ${S.picked} ${arMin(S.picked)}` : `راحة ${S.picked} ${arMin(S.picked)}`);
+      if (S.mode==='study') setTodo(1, true); // حدد الوقت
+      transitionTimer = setTimeout(()=>{ transitionTimer=null; gotoTimer(); }, 1100);
     }
   }
-  requestAnimationFrame(frame);
+  setTimeout(()=>requestAnimationFrame(frame), 800); // العجلة تبدأ مع وصول إيد المساعد ليها
 }
 $('spinBtn').addEventListener('click', spin);
 cv.addEventListener('click', spin);
@@ -186,24 +192,59 @@ $('editApply').addEventListener('click', ()=>{
 });
 
 /* ---------- التنقل ---------- */
-function setChars(){
-  const T=$('charTom'), J=$('charJerry');
-  let ti, tt, tl, th, ji, jt, jl, jh;
-  if (S.page==='wheel' && S.mode==='study'){ ti='tom1'; tt=48; tl=11; th=30;  ji='jerry2'; jt=55; jl=64.5; jh=22; }
-  else if (S.page==='wheel' && S.mode==='rest'){ ti='tom2'; tt=48; tl=12; th=30;  ji='jerry1'; jt=55; jl=64.3; jh=22; }
-  else if (S.page==='timer' && S.mode==='study'){ ti='tom3'; tt=54; tl=11.5; th=24;  ji='jerry3'; jt=58; jl=76.5; jh=20; }
-  else { ti='tom2'; tt=50; tl=12; th=28;  ji='jerry2'; jt=58; jl=77; jh=22; }
-  if (window.innerWidth < 760 || window.innerHeight > window.innerWidth * 1.15){
-    const A = {tom1:.746, tom2:.564, tom3:.824, jerry1:.715, jerry2:.657, jerry3:.765};
-    tt=73.5; tl=12; th=13;  jt=75; jh=11;
-    jl = 96 - (jh/100 * window.innerHeight * A[ji] / window.innerWidth * 100);
+function charEl(){ return $('charOr'); }
+function charPlay(name, loop){
+  const C = charEl(), v = C.querySelector('video'), c = CLIPS[name];
+  if (!v){ // متصفح مش بيدعم الفيديو الشفاف: صورة ثابتة لكل حالة
+    const img = C.querySelector('img');
+    if (img) img.src = c.poster;
+    return;
   }
-  T.querySelector('img').src = ASSETS[ti];
-  T.style.top=tt+'%'; T.style.left=tl+'%'; T.style.height=th+'%'; T.style.width='auto'; T.style.aspectRatio='auto';
-  J.querySelector('img').src = ASSETS[ji];
-  J.style.top=jt+'%'; J.style.left=jl+'%'; J.style.height=jh+'%'; J.style.width='auto';
-  T.classList.add('anim'); J.classList.add('anim');
-  T.classList.remove('frozen'); J.classList.remove('frozen');
+  if (v.dataset.clip !== name){
+    v.dataset.clip = name;
+    v.poster = c.poster;
+    v.src = c.src;
+    v.load();
+  }
+  v.loop = !!loop;
+  if (C.classList.contains('frozen')) return;
+  v.play().catch(()=>{});
+}
+function freezeChar(f){
+  const C = charEl(), v = C.querySelector('video');
+  C.classList.toggle('frozen', f);
+  if (v){ if (f) v.pause(); else v.play().catch(()=>{}); }
+}
+function charPlace(top, left, h, name){
+  const C = charEl();
+  C.style.top=top+'%'; C.style.left=left+'%'; C.style.height=h+'%';
+  C.style.aspectRatio = String(CLIPS[name].ar);
+}
+const charVideo = charEl().querySelector('video');
+charVideo.addEventListener('error', ()=>{
+  const C = charEl();
+  if (C.querySelector('img')) return;
+  const img = document.createElement('img');
+  img.src = CLIPS[charVideo.dataset.clip||'wave'].poster;
+  img.alt = '';
+  charVideo.replaceWith(img);
+});
+
+function setChars(){
+  const mobile = (window.innerWidth < 760 || window.innerHeight > window.innerWidth * 1.15);
+  let clip, top, left, h;
+  if (mobile){
+    clip = (S.page==='timer') ? (S.mode==='study' ? 'read' : 'tea') : 'wave';
+    top=72; left=6; h=15;
+  } else if (S.page==='wheel'){
+    clip='wave'; top=33; left=10; h=39;
+  } else {
+    clip = S.mode==='study' ? 'read' : 'tea';
+    top=40; left=8; h=32;
+  }
+  charPlace(top, left, h, clip);
+  charPlay(clip, true);
+  charEl().classList.remove('frozen');
 }
 function setFrames(){
   const set = FRAMES[S.mode];
@@ -211,7 +252,7 @@ function setFrames(){
     f.querySelector('img').src = set[f.dataset.slot];
   });
 }
-function show(p){
+function show(p, noPush){
   $('pageWheel').classList.toggle('on', p==='wheel');
   $('pageTimer').classList.toggle('on', p==='timer');
   const fe=document.querySelector('.frame[data-slot="e"]'); if(fe) fe.style.display=(p==='timer')?'none':'';
@@ -225,37 +266,48 @@ function show(p){
     el.classList.toggle('complete', n<step);
     el.setAttribute('aria-current', n===step ? 'step' : 'false');
   });
-  setChars(); setFrames();
+  fadeChars(); setFrames();
+  if (!noPush){ const h='#'+p+'-'+S.mode+(p==='timer' ? '-'+S.picked : ''); if (location.hash!==h) history.pushState(null,'',h); }
 }
-function gotoTimer(){
+function fadeChars(){ // انتقال ناعم بين أوضاع المساعد
+  const cs = document.querySelectorAll('.char');
+  cs.forEach(c=>c.style.opacity=0);
+  clearTimeout(fadeT);
+  fadeT = setTimeout(()=>{ setChars(); cs.forEach(c=>c.style.opacity=1); }, 300);
+}
+function gotoTimer(noPush){
   S.total = S.picked*60; S.left = S.total; S.running=false;
   updateTimerUI();
   $('startBtn').textContent='ابدأ ▶';
   const _clk = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-3px;margin-inline-end:6px"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2.5h6"/></svg>';
   $('timerLabel').innerHTML = _clk + (S.mode==='study'? 'وقت المذاكرة' : 'وقت الراحة');
-  show('timer');
+  show('timer', noPush);
 }
 $('backBtn').addEventListener('click', ()=>{
+  if (spinning) return; // متتراجعش في نص اللفة عشان الحالة متتلخبطش
   clearTransition();
   stopTick();
   if (S.page==='timer') { show('wheel'); }
-  else if (S.page==='wheel' && S.mode==='rest') { S.mode='study'; angle=0; drawWheel(); show('wheel'); }
+  else if (S.page==='wheel' && S.mode==='rest') { S.mode='study'; newRound(); angle=0; drawWheel(); show('wheel'); }
 });
 
 /* ---------- التايمر ---------- */
+function arMin(n){ return n===1 ? 'دقيقة' : n===2 ? 'دقيقتين' : (n>=3 && n<=10) ? 'دقائق' : 'دقيقة'; }
 function fmt(s){ s=Math.max(0,Math.ceil(s)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
 function updateTimerUI(){
   $('timerDigits').textContent = fmt(S.left);
   $('progressBar').style.width = (S.total? (S.left/S.total*100):0)+'%';
   document.title = S.running ? fmt(S.left)+' - Study with OR' : 'Study with OR';
 }
-function stopTick(){ if(S.tick){clearInterval(S.tick); S.tick=null;} S.running=false; }
+function stopTick(){ if(S.tick){clearInterval(S.tick); S.tick=null;} S.running=false; unlockScreen(); }
 $('startBtn').addEventListener('click', ()=>{
   if (S.running) return;
   clearTransition();
   if (S.left<=0){ S.left=S.total; updateTimerUI(); }
-  S.running=true; S.endAt = Date.now()+S.left*1000;
+  S.running=true; S.endAt = Date.now()+S.left*1000; lockScreen(); // الشاشة تفضل صاحية وقت الجلسة
   $('startBtn').textContent='شغال...';
+  freezeChar(false);
+  if (S.mode==='study') setTodo(2, true); // بدء المذاكرة
   S.tick = setInterval(()=>{
     S.left = (S.endAt-Date.now())/1000;
     if (S.left<=0){ S.left=0; updateTimerUI(); finishTimer(); }
@@ -267,31 +319,40 @@ $('pauseBtn').addEventListener('click', ()=>{
   S.left = Math.max(0, (S.endAt-Date.now())/1000);
   stopTick();
   updateTimerUI();
+  freezeChar(true);
   if (S.left<=0){ finishTimer(); return; }
   $('startBtn').textContent='استئناف ▶';
 });
 $('resetBtn').addEventListener('click', ()=>{
   clearTransition();
   stopTick(); S.left=S.total; updateTimerUI(); $('startBtn').textContent='ابدأ ▶';
-  $('charTom').classList.remove('frozen'); $('charJerry').classList.remove('frozen');
+  freezeChar(false);
 });
 $('skipBtn').addEventListener('click', ()=>{ // تخطي المرحلة الحالية
   clearTransition();
   stopTick(); S.left=0; updateTimerUI();
   $('startBtn').textContent='ابدأ ▶';
-  S.mode = (S.mode==='study') ? 'rest' : 'study';
+  const wasRest = (S.mode==='rest');
+  S.mode = wasRest ? 'study' : 'rest';
+  if (wasRest) newRound();
   angle=0; drawWheel(); show('wheel');
 });
 function finishTimer(){
   clearTransition();
   stopTick(); chime(); $('startBtn').textContent='ابدأ ▶';
-  $('charTom').classList.add('frozen'); $('charJerry').classList.add('frozen');
   if (S.mode==='study'){
     toast('خلص وقت المذاكرة! وقت الراحة');
-    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='rest'; angle=0; drawWheel(); show('wheel'); }, 2600);
+    // المساعد بيحتفل بقفزة أول ما المذاكرة تخلص
+    const mobileEnd = (window.innerWidth < 760 || window.innerHeight > window.innerWidth * 1.15);
+    if (mobileEnd) charPlace(66, 6, 18, 'cheer');
+    else charPlace(34, 8, 36, 'cheer');
+    charEl().classList.remove('frozen');
+    charPlay('cheer', false);
+    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='rest'; angle=0; drawWheel(); show('wheel'); }, 6600);
   } else {
+    freezeChar(true);
     toast('خلصت الراحة، نرجع نذاكر؟');
-    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='study'; angle=0; drawWheel(); show('wheel'); }, 2600);
+    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='study'; newRound(); angle=0; drawWheel(); show('wheel'); }, 2600);
   }
 }
 let toastTimer = null;
@@ -308,22 +369,33 @@ document.querySelectorAll('.frame').forEach(f=>{
     lb.querySelector('img').src = f.querySelector('img').src;
     lb.classList.add('open');
   });
+  f.addEventListener('keydown', e=>{ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); f.click(); } });
 });
 lb.addEventListener('click', ()=>lb.classList.remove('open'));
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') lb.classList.remove('open'); });
 
 /* ---------- السبورة ---------- */
+function setTodo(i, done){
+  const t = document.querySelectorAll('.todo')[i];
+  if (!t) return;
+  t.classList.toggle('done', done);
+  t.querySelector('.box').textContent = done ? '✓' : '';
+  savePrefs();
+}
+function newRound(){ setTodo(1, false); setTodo(2, false); } // جولة مذاكرة جديدة
 document.querySelectorAll('.todo').forEach(t=>{
   t.addEventListener('click', ()=>{
     t.classList.toggle('done');
     t.querySelector('.box').textContent = t.classList.contains('done')? '✓':'';
+    savePrefs();
   });
 });
 
 /* ---------- حفظ التفضيلات ---------- */
 function savePrefs(){
   try {
-    localStorage.setItem('swo', JSON.stringify({studyVals:S.studyVals, restVals:S.restVals, rainVol, chimeVol}));
+    localStorage.setItem('swo', JSON.stringify({studyVals:S.studyVals, restVals:S.restVals, rainVol, chimeVol,
+      todos:[...document.querySelectorAll('.todo')].map(t=>t.classList.contains('done'))}));
   } catch(e) {}
 }
 function loadPrefs(){
@@ -335,26 +407,39 @@ function loadPrefs(){
     if (ok(p.restVals)) S.restVals = p.restVals;
     if (typeof p.rainVol==='number' && p.rainVol>=0 && p.rainVol<=1){ rainVol=p.rainVol; $('rainVol').value=Math.round(rainVol*100); }
     if (typeof p.chimeVol==='number' && p.chimeVol>=0 && p.chimeVol<=1){ chimeVol=p.chimeVol; $('chimeVol').value=Math.round(chimeVol*100); }
+    if (Array.isArray(p.todos)) p.todos.forEach((d,i)=>{
+      const t=document.querySelectorAll('.todo')[i];
+      if (t){ t.classList.toggle('done', !!d); t.querySelector('.box').textContent = d ? '✓' : ''; }
+    });
   } catch(e) {}
 }
 
 /* ---------- بداية ---------- */
 loadPrefs();
-// تحميل مسبق لكل الصور عشان أول لفة/تحويلة تكون سلسة
-Object.values(ASSETS).concat(Object.values(FRAMES.study), Object.values(FRAMES.rest))
+// تحميل مسبق لصور الحالات والبراويز عشان أول تحويلة تكون سلسة
+Object.values(CLIPS).map(c=>c.poster)
+  .concat(Object.values(FRAMES.study), Object.values(FRAMES.rest))
   .forEach(u=>{ const im=new Image(); im.src=u; });
 sizeWheelCanvas(); setChars(); setFrames();
-// لدعم المعاينة المباشرة لصفحة معينة: index.html#timer-study-45 أو #wheel-rest
+window.addEventListener('resize', ()=>{ clearTimeout(rz); rz=setTimeout(setChars, 150); });
+// الروابط: #wheel-study  #timer-study-45  #wheel-rest  #timer-rest-10
+function route(h, instant){
+  const parts = h.split('-');
+  S.mode = parts[1]==='rest' ? 'rest' : 'study';
+  S.picked = parseInt(parts[2]) || 45;
+  clearTransition(); stopTick();
+  angle=0; drawWheel();
+  const pgs = document.querySelectorAll('.page');
+  if (instant) pgs.forEach(p=>p.style.transition='none');
+  if (parts[0]==='timer') gotoTimer(true); else show('wheel', true);
+  if (instant) setTimeout(()=>pgs.forEach(p=>p.style.transition=''), 80);
+}
+window.addEventListener('popstate', ()=>route(location.hash.replace('#','') || 'wheel-study'));
 (function(){
   const h = location.hash.replace('#','');
-  if (!h) return;
+  if (!h){ history.replaceState(null,'','#wheel-study'); return; }
   const _intro = document.getElementById('intro'); if (_intro) _intro.remove();
-  const parts = h.split('-');
-  if (parts[1]) S.mode = parts[1];
-  if (parts[2]) S.picked = parseInt(parts[2])||45;
-  document.querySelectorAll('.page').forEach(p=>p.style.transition='none');
-  if (parts[0]==='timer') gotoTimer();
-  else { angle=0; drawWheel(); show('wheel'); }
+  route(h, true);
 })();
 
 /* ===== intro ===== */
@@ -374,15 +459,25 @@ sizeWheelCanvas(); setChars(); setFrames();
     e.stopPropagation();
     if (playing) return; playing = true;
     tap.style.display = 'none';
-    vid.play().catch(() => { vid.muted = true; vid.play().catch(endIntro); });
+    intro.classList.add('playing');
+    vid.play().catch(() => { vid.play().catch(endIntro); });
   });
   vid.addEventListener('ended', endIntro);
-  vid.addEventListener('error', endIntro);
+  vid.addEventListener('error', ()=>{
+    const img = document.createElement('img');
+    img.src = 'assets/or-wave.png';
+    img.id = 'introVideo';
+    img.alt = '';
+    vid.replaceWith(img);
+    tap.textContent = '▶ دخول';
+    tap.addEventListener('click', (e)=>{ e.stopPropagation(); endIntro(); });
+  });
   intro.addEventListener('click', () => { if (playing) endIntro(); });
   setTimeout(() => {
     if (!playing && !done) {
       playing = true; tap.style.display = 'none';
-      vid.muted = true; vid.play().catch(endIntro);
+      intro.classList.add('playing');
+      vid.play().catch(endIntro);
     }
   }, 9000);
 })();
