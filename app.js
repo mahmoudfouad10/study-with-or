@@ -20,11 +20,14 @@ const S = {
   total:45*60, left:45*60, running:false, tick:null, endAt:0
 };
 const $ = id => document.getElementById(id);
+let transitionTimer = null;
+function clearTransition(){ if(transitionTimer){ clearTimeout(transitionTimer); transitionTimer=null; } }
 
 /* ---------- الصوت ---------- */
 let AC=null, rainGain=null, chimeVol=.7, rainVol=.3;
 function audioInit(){
   if (AC) return;
+  if (document.getElementById('intro')) return; // المطر يبدأ بعد انتهاء المقدمة فقط
   AC = new (window.AudioContext||window.webkitAudioContext)();
   // مطر: ضوضاء بنية + فلتر
   const len = 3*AC.sampleRate, buf = AC.createBuffer(1,len,AC.sampleRate), d = buf.getChannelData(0);
@@ -53,13 +56,30 @@ function chime(){
     });
   });
 }
-$('rainVol').addEventListener('input', e=>{ rainVol=e.target.value/100; if(rainGain) rainGain.gain.value=rainVol*.9; });
-$('chimeVol').addEventListener('input', e=>{ chimeVol=e.target.value/100; });
-document.addEventListener('pointerdown', audioInit, {once:true});
+$('rainVol').addEventListener('input', e=>{ rainVol=e.target.value/100; if(rainGain) rainGain.gain.value=rainVol*.9; savePrefs(); });
+$('chimeVol').addEventListener('input', e=>{ chimeVol=e.target.value/100; savePrefs(); });
+function armAudio(){ audioInit(); if (AC) document.removeEventListener('pointerdown', armAudio); }
+document.addEventListener('pointerdown', armAudio);
 
 /* ---------- العجلة ---------- */
 const cv = $('wheel'), ctx2d = cv.getContext('2d');
 let angle = 0, spinning=false;
+function sizeWheelCanvas(){ // وضوح العجلة على شاشات HiDPI
+  const dpr = Math.min(window.devicePixelRatio||1, 2.5);
+  cv.width = Math.round(460*dpr); cv.height = Math.round(460*dpr);
+  ctx2d.setTransform(dpr,0,0,dpr,0,0);
+  drawWheel();
+}
+window.addEventListener('resize', sizeWheelCanvas);
+// لو الـ devicePixelRatio اتغير بعد التحميل (نقل النافذة لشاشة تانية مثلاً)
+let _dprMql = null;
+function watchDpr(){
+  if (_dprMql) _dprMql.removeEventListener('change', _dprChanged);
+  _dprMql = matchMedia('(resolution:' + window.devicePixelRatio + 'dppx)');
+  _dprMql.addEventListener('change', _dprChanged);
+}
+function _dprChanged(){ sizeWheelCanvas(); watchDpr(); }
+watchDpr();
 function wheelColors(){
   return S.mode==='study'
     ? ['#2e6b57','#17352b','#7fc8bc','#2e6b57','#17352b','#7fc8bc']
@@ -89,21 +109,25 @@ function drawWheel(){
     ctx2d.fillText(String(vals[i]), 0, 0);
     ctx2d.restore();
   }
-  // إطار خشبي
+  // إطار العجلة
   ctx2d.beginPath(); ctx2d.arc(0,0,r+7,0,2*Math.PI);
-  ctx2d.strokeStyle='#6b4c2f'; ctx2d.lineWidth=15; ctx2d.stroke();
+  ctx2d.strokeStyle='#3d5d4e'; ctx2d.lineWidth=15; ctx2d.stroke();
   ctx2d.beginPath(); ctx2d.arc(0,0,r-1,0,2*Math.PI);
-  ctx2d.strokeStyle='#8b6539'; ctx2d.lineWidth=3; ctx2d.stroke();
+  ctx2d.strokeStyle='#668477'; ctx2d.lineWidth=3; ctx2d.stroke();
   ctx2d.restore();
 }
 function spin(){
   if (spinning) return;
   spinning = true; $('spinBtn').disabled = true;
+  $('editPanel').classList.remove('open');
   const vals = S.mode==='study'? S.studyVals : S.restVals;
   const _poses = S.mode==='study' ? ['tomspin1','tomspin2','tomspin3','tomspin2'] : ['jerryspin1','jerryspin2','jerryspin3','jerryspin4','jerryspin5','jerryspin6','jerryspin7'];
   const _chImg = (S.mode==='study' ? $('charTom') : $('charJerry')).querySelector('img');
-  let _pi=0;
-  const _poseTimer=setInterval(()=>{ _chImg.src=ASSETS[_poses[_pi%_poses.length]]; _pi++; }, 170);
+  let _pi=-1;
+  const _poseSync = p => { // حركة الشخصية متزامنة مع تباطؤ العجلة
+    const i = Math.min(_poses.length-1, Math.floor(p*_poses.length));
+    if (i!==_pi){ _pi=i; _chImg.src = ASSETS[_poses[i]]; }
+  };
   const n = vals.length, arc = 2*Math.PI/n;
   const targetIdx = Math.floor(Math.random()*n);
   // العايز المؤشر (فوق، -90deg) يقف في نص القطاع targetIdx
@@ -121,11 +145,12 @@ function spin(){
     const p = Math.min(1,(t-t0)/dur);
     angle = start + target*ease(p);
     drawWheel();
+    _poseSync(p);
     if (p<1) requestAnimationFrame(frame);
     else {
       angle = (start+target)%(2*Math.PI); drawWheel();
       spinning=false; $('spinBtn').disabled=false;
-      clearInterval(_poseTimer); setChars();
+      setChars();
       S.picked = vals[targetIdx];
       toast(S.mode==='study' ? `مذاكرة ${S.picked} دقيقة` : `راحة ${S.picked} دقائق`);
       setTimeout(()=>gotoTimer(), 1100);
@@ -141,11 +166,22 @@ $('editToggle').addEventListener('click', ()=>{
   const p = $('editPanel'); p.classList.toggle('open');
   const vals = S.mode==='study'? S.studyVals : S.restVals;
   $('editInputs').innerHTML = vals.map((v,i)=>`<input type="number" min="1" max="180" value="${v}" data-i="${i}">`).join('');
+  // لو اللوحة هتتقصّ من تحت، افتحها لفوق
+  p.classList.remove('up');
+  if (p.classList.contains('open') && p.getBoundingClientRect().bottom > window.innerHeight - 8)
+    p.classList.add('up');
 });
 $('editApply').addEventListener('click', ()=>{
-  const vals = [...$('editInputs').querySelectorAll('input')]
-    .map(el=>Math.max(1,Math.min(180,parseInt(el.value)||1)));
+  const fields = [...$('editInputs').querySelectorAll('input')];
+  if (!fields.length){ toast('لازم تضيف وقت واحد على الأقل'); return; }
+  const raw = fields.map(el=>el.value.trim());
+  if (raw.some(v=>v==='' || !Number.isInteger(Number(v)) || Number(v)<1 || Number(v)>180)){
+    toast('اختار أوقات صحيحة من دقيقة لـ 180 دقيقة');
+    return;
+  }
+  const vals = raw.map(Number);
   if (S.mode==='study') S.studyVals = vals; else S.restVals = vals;
+  savePrefs();
   angle=0; drawWheel(); $('editPanel').classList.remove('open');
 });
 
@@ -182,6 +218,13 @@ function show(p){
   $('backBtn').style.display = (p==='wheel' && S.mode==='study') ? 'none' : 'inline-block';
   S.page = p;
   document.body.classList.toggle('rest', S.mode==='rest');
+  const step = (S.mode==='study' ? (p==='wheel' ? 1 : 2) : (p==='wheel' ? 3 : 4));
+  document.querySelectorAll('#journey [data-step]').forEach(el=>{
+    const n = Number(el.dataset.step);
+    el.classList.toggle('active', n===step);
+    el.classList.toggle('complete', n<step);
+    el.setAttribute('aria-current', n===step ? 'step' : 'false');
+  });
   setChars(); setFrames();
 }
 function gotoTimer(){
@@ -193,6 +236,7 @@ function gotoTimer(){
   show('timer');
 }
 $('backBtn').addEventListener('click', ()=>{
+  clearTransition();
   stopTick();
   if (S.page==='timer') { show('wheel'); }
   else if (S.page==='wheel' && S.mode==='rest') { S.mode='study'; angle=0; drawWheel(); show('wheel'); }
@@ -203,10 +247,13 @@ function fmt(s){ s=Math.max(0,Math.ceil(s)); return String(Math.floor(s/60)).pad
 function updateTimerUI(){
   $('timerDigits').textContent = fmt(S.left);
   $('progressBar').style.width = (S.total? (S.left/S.total*100):0)+'%';
+  document.title = S.running ? fmt(S.left)+' - Study with OR' : 'Study with OR';
 }
 function stopTick(){ if(S.tick){clearInterval(S.tick); S.tick=null;} S.running=false; }
 $('startBtn').addEventListener('click', ()=>{
   if (S.running) return;
+  clearTransition();
+  if (S.left<=0){ S.left=S.total; updateTimerUI(); }
   S.running=true; S.endAt = Date.now()+S.left*1000;
   $('startBtn').textContent='شغال...';
   S.tick = setInterval(()=>{
@@ -217,26 +264,41 @@ $('startBtn').addEventListener('click', ()=>{
 });
 $('pauseBtn').addEventListener('click', ()=>{
   if (!S.running) return;
-  stopTick(); $('startBtn').textContent='استئناف ▶';
+  S.left = Math.max(0, (S.endAt-Date.now())/1000);
+  stopTick();
+  updateTimerUI();
+  if (S.left<=0){ finishTimer(); return; }
+  $('startBtn').textContent='استئناف ▶';
 });
 $('resetBtn').addEventListener('click', ()=>{
+  clearTransition();
   stopTick(); S.left=S.total; updateTimerUI(); $('startBtn').textContent='ابدأ ▶';
   $('charTom').classList.remove('frozen'); $('charJerry').classList.remove('frozen');
 });
+$('skipBtn').addEventListener('click', ()=>{ // تخطي المرحلة الحالية
+  clearTransition();
+  stopTick(); S.left=0; updateTimerUI();
+  $('startBtn').textContent='ابدأ ▶';
+  S.mode = (S.mode==='study') ? 'rest' : 'study';
+  angle=0; drawWheel(); show('wheel');
+});
 function finishTimer(){
+  clearTransition();
   stopTick(); chime(); $('startBtn').textContent='ابدأ ▶';
   $('charTom').classList.add('frozen'); $('charJerry').classList.add('frozen');
   if (S.mode==='study'){
     toast('خلص وقت المذاكرة! وقت الراحة');
-    setTimeout(()=>{ S.mode='rest'; angle=0; drawWheel(); show('wheel'); }, 2600);
+    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='rest'; angle=0; drawWheel(); show('wheel'); }, 2600);
   } else {
     toast('خلصت الراحة، نرجع نذاكر؟');
-    setTimeout(()=>{ S.mode='study'; angle=0; drawWheel(); show('wheel'); }, 2600);
+    transitionTimer = setTimeout(()=>{ transitionTimer=null; S.mode='study'; angle=0; drawWheel(); show('wheel'); }, 2600);
   }
 }
+let toastTimer = null;
 function toast(msg){
   $('toast').textContent = msg; $('toast').classList.add('show');
-  setTimeout(()=>$('toast').classList.remove('show'), 2200);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>$('toast').classList.remove('show'), 2200);
 }
 
 /* ---------- البراويز ---------- */
@@ -258,8 +320,30 @@ document.querySelectorAll('.todo').forEach(t=>{
   });
 });
 
+/* ---------- حفظ التفضيلات ---------- */
+function savePrefs(){
+  try {
+    localStorage.setItem('swo', JSON.stringify({studyVals:S.studyVals, restVals:S.restVals, rainVol, chimeVol}));
+  } catch(e) {}
+}
+function loadPrefs(){
+  try {
+    const p = JSON.parse(localStorage.getItem('swo')||'null');
+    if (!p) return;
+    const ok = a => Array.isArray(a) && a.length>0 && a.length<=12 && a.every(v=>Number.isInteger(v) && v>=1 && v<=180);
+    if (ok(p.studyVals)) S.studyVals = p.studyVals;
+    if (ok(p.restVals)) S.restVals = p.restVals;
+    if (typeof p.rainVol==='number' && p.rainVol>=0 && p.rainVol<=1){ rainVol=p.rainVol; $('rainVol').value=Math.round(rainVol*100); }
+    if (typeof p.chimeVol==='number' && p.chimeVol>=0 && p.chimeVol<=1){ chimeVol=p.chimeVol; $('chimeVol').value=Math.round(chimeVol*100); }
+  } catch(e) {}
+}
+
 /* ---------- بداية ---------- */
-drawWheel(); setChars(); setFrames();
+loadPrefs();
+// تحميل مسبق لكل الصور عشان أول لفة/تحويلة تكون سلسة
+Object.values(ASSETS).concat(Object.values(FRAMES.study), Object.values(FRAMES.rest))
+  .forEach(u=>{ const im=new Image(); im.src=u; });
+sizeWheelCanvas(); setChars(); setFrames();
 // لدعم المعاينة المباشرة لصفحة معينة: index.html#timer-study-45 أو #wheel-rest
 (function(){
   const h = location.hash.replace('#','');
@@ -280,12 +364,11 @@ drawWheel(); setChars(); setFrames();
   const vid = document.getElementById('introVideo');
   const tap = document.getElementById('introTap');
   let done = false, playing = false;
-  fetch(vid.dataset.src).then(r => r.blob()).then(b => { vid.src = URL.createObjectURL(b); }).catch(() => {});
   function endIntro() {
     if (done) return; done = true;
     try { vid.pause(); } catch(e) {}
     intro.classList.add('leave');
-    setTimeout(() => intro.remove(), 900);
+    setTimeout(() => { intro.remove(); audioInit(); }, 900);
   }
   tap.addEventListener('click', (e) => {
     e.stopPropagation();

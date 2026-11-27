@@ -1,6 +1,6 @@
 * { margin:0; padding:0; box-sizing:border-box; }
   html,body { width:100%; height:100%; overflow:hidden; background:#0e1a16;
-    font-family:'Segoe UI', Tahoma, 'Noto Kufi Arabic', sans-serif; }
+    font-family:'Noto Kufi Arabic', 'Segoe UI', Tahoma, sans-serif; }
   #stage { position:relative; width:100vw; height:100vh; overflow:hidden; user-select:none; }
 
   /* ---------- الغرفة ---------- */
@@ -30,24 +30,24 @@
 
   /* ---------- اللافتة ---------- */
   #ropes { position:absolute; top:0; left:0; right:0; height:2.4vh; z-index:3; pointer-events:none; }
-  .rope { position:absolute; top:0; height:100%; border-right:3px dotted #9b7d55; }
+  .rope { position:absolute; top:0; height:100%; border-right:3px dotted #638675; }
   #sign { position:absolute; top:2.4vh; left:50%; transform:translateX(-50%); z-index:3;
     direction:ltr; padding:1.1vh 4.5vw; border-radius:14px;
     background:
-      repeating-linear-gradient(180deg, transparent 0 calc(50% - 1px), rgba(60,40,20,.55) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
-      linear-gradient(180deg,#9c7a52,#7d5c3a 55%,#6b4c2f);
-    border:3px solid #54391f; box-shadow:0 8px 18px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,230,190,.25);
-    color:#fff; font-weight:800; font-size:3.4vh; letter-spacing:.5px;
-    text-shadow:0 2px 3px rgba(60,35,10,.8); white-space:nowrap; }
+      repeating-linear-gradient(180deg, transparent 0 calc(50% - 1px), rgba(10,35,26,.35) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+      linear-gradient(180deg,#365b4b,#294638 55%,#20382d);
+    border:2px solid #638675; box-shadow:0 8px 18px rgba(0,0,0,.42), inset 0 2px 3px rgba(220,245,230,.12);
+    color:#f0f5ee; font-weight:800; font-size:3.4vh; letter-spacing:.5px;
+    text-shadow:0 2px 3px rgba(5,20,14,.6); white-space:nowrap; }
 
   #logo { position:absolute; top:1.6vh; left:1.2vw; width:3.4vw; max-width:52px; z-index:6;
     border-radius:10px; opacity:.88; box-shadow:0 2px 8px rgba(0,0,0,.4); }
 
   /* ---------- البراويز ---------- */
   .frame { position:absolute; z-index:2; padding:.55vh .35vw; cursor:pointer;
-    background:linear-gradient(160deg,#8a6539,#5d3f22);
-    border-radius:4px; border:1px solid #3f2a14;
-    box-shadow:0 7px 16px rgba(0,0,0,.55), inset 0 0 0 2px #a07a48;
+    background:linear-gradient(160deg,#668477,#3d5d4e);
+    border-radius:7px; border:1px solid #294638;
+    box-shadow:0 7px 16px rgba(0,0,0,.48), inset 0 0 0 2px rgba(202,226,210,.18);
     transition:transform .25s; }
   .frame:hover { transform:scale(1.045); }
   .frame img { width:100%; height:100%; object-fit:cover; display:block; border-radius:2px;
@@ -79,18 +79,19 @@
   .frozen .inner { animation-play-state:paused; }
 
   /* ---------- العجلة ---------- */
-  #wheelWrap { position:absolute; left:31.5%; top:16.5%; width:32%; height:57%; z-index:3; }
-  #wheel { width:100%; height:100%; cursor:pointer; }
+  #wheelWrap { position:absolute; left:47.5vw; top:16.5%; transform:translateX(-50%);
+    width:min(32vw,57vh); aspect-ratio:1/1; height:auto; z-index:3; }
+  #wheel { display:block; width:100%; height:100%; cursor:pointer; touch-action:manipulation; }
   #pointer { position:absolute; top:-2.2%; left:50%; transform:translateX(-50%); z-index:4;
     width:0; height:0; border-left:1.6vh solid transparent; border-right:1.6vh solid transparent;
     border-top:3.4vh solid #7fc8bc; filter:drop-shadow(0 3px 3px rgba(0,0,0,.5)); }
   body.rest #pointer { border-top-color:#b8a9e0; }
   #spinBtn { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:5;
-    width:11.5vh; height:11.5vh; border-radius:50%; border:4px solid #54391f;
-    background:radial-gradient(circle at 35% 30%, #a8815a, #6b4c2f 75%);
-    color:#fff; font-size:2.5vh; font-weight:800; cursor:pointer; font-family:inherit;
-    box-shadow:0 6px 14px rgba(0,0,0,.5), inset 0 2px 4px rgba(255,230,190,.3);
-    text-shadow:0 2px 2px rgba(60,35,10,.8); transition:transform .15s; }
+    width:11.5vh; height:11.5vh; border-radius:50%; border:3px solid #8ba99a;
+    background:radial-gradient(circle at 35% 30%, #547d69, #294638 75%);
+    color:#f4f6f1; font-size:2.5vh; font-weight:800; cursor:pointer; font-family:inherit;
+    box-shadow:0 6px 14px rgba(0,0,0,.45), inset 0 2px 4px rgba(220,245,230,.18);
+    text-shadow:0 2px 2px rgba(5,20,14,.6); transition:transform .15s; }
   #spinBtn:hover { transform:translate(-50%,-50%) scale(1.07); }
   #spinBtn:disabled { opacity:.55; cursor:default; transform:translate(-50%,-50%); }
 
@@ -101,6 +102,8 @@
   #editPanel { display:none; margin-top:1vh; background:rgba(16,28,24,.92); border:1px solid rgba(127,200,187,.35);
     border-radius:14px; padding:1.2vh 1vw; direction:rtl; }
   #editPanel.open { display:block; }
+  #editPanel.up { position:absolute; bottom:calc(100% + 1vh); left:50%; transform:translateX(-50%);
+    margin-top:0; white-space:nowrap; }
   #editPanel input { width:4.2vw; max-width:64px; margin:0 .25vw; padding:.6vh .3vw; text-align:center;
     font-size:1.8vh; border-radius:8px; border:1px solid #3f6a5c; background:#0f1e19; color:#dff3ec;
     font-family:inherit; }
@@ -132,8 +135,8 @@
   #startBtn { background:linear-gradient(180deg,#3e9c86,#2e6b57); color:#fff;
     box-shadow:0 6px 14px rgba(20,80,65,.5); }
   body.rest #startBtn { background:linear-gradient(180deg,#8d7bb8,#5a4e85); }
-  #pauseBtn, #resetBtn { background:rgba(255,255,255,.1); color:#d5efe7; border:1.5px solid rgba(127,200,187,.4); }
-  body.rest #pauseBtn, body.rest #resetBtn { color:#e4dcf7; border-color:rgba(184,169,224,.4); }
+  #pauseBtn, #resetBtn, #skipBtn { background:rgba(255,255,255,.1); color:#d5efe7; border:1.5px solid rgba(127,200,187,.4); }
+  body.rest #pauseBtn, body.rest #resetBtn, body.rest #skipBtn { color:#e4dcf7; border-color:rgba(184,169,224,.4); }
 
   /* ---------- عام ---------- */
   #backBtn { position:absolute; top:1.8vh; right:1.2vw; z-index:8;
@@ -147,7 +150,7 @@
 
   #soundCtl { position:absolute; bottom:1.6vh; left:1.2vw; z-index:8; display:flex; gap:1.4vw;
     align-items:center; background:rgba(16,28,24,.8); border:1px solid rgba(127,200,187,.3);
-    border-radius:99px; padding:.9vh 1.2vw; direction:ltr; }
+    border-radius:99px; padding:.9vh 1.2vw; direction:ltr; color:#bfe3d8; }
   .sld { display:flex; align-items:center; gap:.45vw; font-size:1.9vh; }
   .sld input { width:5.5vw; max-width:90px; accent-color:#7fc8bc; cursor:pointer; }
 
@@ -155,7 +158,7 @@
     display:none; align-items:center; justify-content:center; cursor:zoom-out; }
   #lightbox.open { display:flex; }
   #lightbox img { max-width:88vw; max-height:88vh; border-radius:10px;
-    border:10px solid #6b4c2f; box-shadow:0 24px 70px rgba(0,0,0,.8); }
+    border:10px solid #3d5d4e; box-shadow:0 24px 70px rgba(0,0,0,.8); }
 
   .page { position:absolute; inset:0; opacity:0; visibility:hidden;
     transition:opacity .55s ease, visibility .55s; }
@@ -172,7 +175,7 @@
   #intro::after { content:''; position:absolute; inset:0; pointer-events:none;
     background:radial-gradient(115% 95% at 50% 50%, transparent 58%, rgba(5,12,9,.5) 100%); }
   #introTap { position:absolute; left:50%; bottom:11vh; transform:translateX(-50%); z-index:2;
-    background:rgba(14,32,24,.82); color:#f5e9c9; border:1.5px solid rgba(240,225,180,.55);
+    background:rgba(14,32,24,.82); color:#dff3ec; border:1.5px solid rgba(127,200,187,.55);
     border-radius:99px; padding:1.3vh 5vw; font-size:2.4vh; font-weight:700; cursor:pointer;
     font-family:inherit; animation:tapPulse 1.6s ease-in-out infinite; }
   @keyframes tapPulse { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.07)} }
@@ -185,7 +188,7 @@
     .frame[data-slot="b"], .frame[data-slot="c"], .frame[data-slot="d"], .frame[data-slot="e"] { display:none; }
     .frame[data-slot="a"] { display:none; }
     .prop { display:none; }
-    #wheelWrap { left:50%; transform:translateX(-50%); top:15vh; width:min(92vw,50vh); height:min(92vw,50vh); }
+    #wheelWrap { left:50vw; transform:translateX(-50%); top:15vh; width:min(92vw,50vh); height:min(92vw,50vh); }
     #board { left:50%; transform:translateX(-50%); top:59.5vh; width:62vw; height:16.5vh; padding:1vh 3vw; overflow:hidden; }
     #board h3 { font-size:3.6vw; margin-bottom:.3vh; padding-bottom:.3vh; }
     .todo { font-size:3.3vw; padding:.5vh .2vw; }
@@ -203,3 +206,23 @@
     #toast { font-size:2vh; top:8.5vh; bottom:auto; transform:translateX(-50%) translateY(-8px); }
     #backBtn { font-size:2.2vh; }
   }
+
+/* ---------- مراحل الجلسة الأربع ---------- */
+#journey { position:absolute; z-index:8; top:10.2%; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; justify-content:center; gap:clamp(5px,.8vw,12px);
+  direction:rtl; padding:7px 13px; max-width:94vw; white-space:nowrap;
+  border:1px solid rgba(177,198,184,.18); border-radius:99px;
+  background:rgba(13,28,21,.62); backdrop-filter:blur(8px);
+  color:rgba(226,238,228,.55); font-size:clamp(9px,.85vw,12px); }
+#journey span { transition:color .25s, opacity .25s; }
+#journey span.active { color:#d9cffa; font-weight:800; }
+#journey span.complete { color:#8dc4a7; }
+#journey i { display:block; width:clamp(8px,1vw,15px); height:1px; background:rgba(180,205,190,.28); }
+@media (orientation:portrait), (max-width:760px) {
+  #journey { top:8.2vh; gap:4px; padding:6px 8px; font-size:clamp(8px,2.15vw,11px); }
+  #journey i { width:5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior:auto !important; animation-duration:.01ms !important;
+    animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
