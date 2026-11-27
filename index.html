@@ -1,1 +1,108 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><script>window.SWO_C=[];</script><script src="d01.js"></script><script src="d02.js"></script><script src="d03.js"></script><script src="d04.js"></script><script src="d05.js"></script><script src="d06.js"></script><script src="d07.js"></script><script src="d08.js"></script><script src="d09.js"></script><script src="d10.js"></script><script src="d11.js"></script><script src="d12.js"></script><script src="d13.js"></script><script src="d14.js"></script><script src="d15.js"></script><script>document.open();document.write(SWO_C.join(""));document.close();</script></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study with OR</title>
+<meta name="description" content="رفيق مذاكرة بشخصيات توم وجيري: لفّ العجلة لاختيار وقت المذاكرة أو الراحة، وركّز مع المؤقّت، وتابع قائمة مهامك.">
+<meta property="og:title" content="Study with OR">
+<meta property="og:description" content="رفيق مذاكرة بشخصيات توم وجيري: لفّ العجلة لاختيار وقت المذاكرة أو الراحة، وركّز مع المؤقّت، وتابع قائمة مهامك.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mahmoudfouad10.github.io/study-with-or/">
+<meta property="og:image" content="https://mahmoudfouad10.github.io/study-with-or/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="theme-color" content="#0e1a16">
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+
+  <div id="intro" aria-hidden="true">
+    <video id="introVideo" playsinline preload="auto" data-src="assets/intro.mp4"></video>
+    <button id="introTap">&#9654; اضغط للبدء</button>
+  </div>
+<div id="stage">
+  <div id="wall">
+    <div class="panel-line" style="right:2%"></div>
+    <div class="panel-line" style="right:38%"></div>
+    <div class="panel-line" style="right:74%"></div>
+  </div>
+  <div id="baseboard"></div>
+  <div id="desk"></div>
+  <div id="restTint"></div>
+
+  <div class="prop" style="left:79.3%; top:2.5%; width:20.7%; height:60.5%"><img src="assets/prop-window.webp" alt=""></div>
+
+  <div id="ropes">
+    <div class="rope" style="right:38%"></div>
+    <div class="rope" style="right:61%"></div>
+  </div>
+  <div id="sign">Study with OR</div>
+  <img id="logo" src="assets/logo.png" alt="MF">
+
+  <div class="frame" data-slot="a" style="left:2.5%; top:9.5%; width:14%; height:20%"><img alt=""></div>
+  <div class="frame" data-slot="b" style="left:18%; top:10%; width:11%; height:21%"><img alt=""></div>
+  <div class="frame" data-slot="c" style="left:2.5%; top:31%; width:14%; height:16.5%"><img alt=""></div>
+  <div class="frame" data-slot="d" style="left:66.5%; top:9%; width:19%; height:24%"><img alt=""></div>
+  <div class="frame" data-slot="e" style="left:18%; top:32.5%; width:11%; height:15.5%"><img alt=""></div>
+
+  <div id="board">
+    <h3>قائمة مهامي</h3>
+    <div class="todo done"><span class="box">✓</span><span class="txt">تجهيز الكتب</span></div>
+    <div class="todo"><span class="box"></span><span class="txt">تحديد الوقت</span></div>
+    <div class="todo"><span class="box"></span><span class="txt">بدء المذاكرة</span></div>
+  </div>
+
+  <div class="char" id="charTom"><div class="inner"><img alt=""></div></div>
+  <div class="char" id="charJerry"><div class="inner"><img alt=""></div></div>
+
+
+
+  <!-- صفحة 1 و 3: العجلة -->
+  <div class="page on" id="pageWheel">
+    <div id="wheelWrap">
+      <canvas id="wheel" width="460" height="460"></canvas>
+      <div id="pointer"></div>
+      <button id="spinBtn">لفّ</button>
+    </div>
+    <div id="editWrap">
+      <button id="editToggle">عدّل الأوقات</button>
+      <div id="editPanel">
+        <div id="editInputs"></div>
+        <button id="editApply">تمام</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- صفحة 2 و 4: التايمر -->
+  <div class="page" id="pageTimer">
+    <div id="timerPanel">
+      <div id="timerLabel">وقت المذاكرة</div>
+      <div id="timerDigits">45:00</div>
+      <div id="progressTrack"><div id="progressBar"></div></div>
+      <div id="timerBtns">
+        <button class="tbtn" id="startBtn">ابدأ ▶</button>
+        <button class="tbtn" id="pauseBtn">إيقاف مؤقت ⏸</button>
+        <button class="tbtn" id="resetBtn">إعادة ↺</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="backBtn" style="display:none">↩ رجوع</button>
+  <div id="toast"></div>
+
+  <div id="soundCtl">
+    <span class="sld"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 15a4.5 4.5 0 1 1 .8-8.9A5.5 5.5 0 0 1 18.5 8 3.5 3.5 0 0 1 18 15H7z"/><path d="M8 18l-1 2.5M13 18l-1 2.5M18 18l-1 2.5"/></svg><input type="range" id="rainVol" min="0" max="100" value="30"></span>
+    <span class="sld"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg><input type="range" id="chimeVol" min="0" max="100" value="70"></span>
+  </div>
+
+  <div id="vignette"></div>
+</div>
+
+<div id="lightbox"><img alt=""></div>
+
+
+</body>
+</html>
